@@ -1,100 +1,103 @@
-version: '3.8'
+version: '3.7'
 
 services:
-  wordpress:
-    image: wordpress:latest
-    ports:
-      - "80:80"
-    environment:
-      WORDPRESS_DB_HOST: db:3306
-      WORDPRESS_DB_USER: wpuser
-      WORDPRESS_DB_PASSWORD: wppassword
-      WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_CACHE_HOST: redis
-    volumes:
-      - wordpress:/var/www/html
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-    networks:
-      - wp-network
-
   db:
     image: mysql:5.7
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wpuser
-      MYSQL_PASSWORD: wppassword
-    volumes:
-      - db_data:/var/lib/mysql
     deploy:
       replicas: 1
-      restart_policy:
-        condition: on-failure
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wp_user
+      MYSQL_PASSWORD: wp_password
+    volumes:
+      - mysql_data:/var/lib/mysql
     networks:
-      - wp-network
+      - my_network
+
+  mysql-exporter:
+    image: prom/mysqld-exporter
+    command: 
+     - --config.my-cnf=/cfg/.my.cnf
+     - --mysqld.address=db:3306
+    volumes:
+      - "./.my.cnf:/cfg/.my.cnf"
+    ports:
+      - 9104:9104
+    networks:
+      - my_network
 
   redis:
     image: redis:latest
     deploy:
       replicas: 1
-      restart_policy:
-        condition: on-failure
-    networks:
-      - wp-network
-
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
     volumes:
-      - prometheus_data:/prometheus
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - my_network
+
+  wordpress:
+    image: wordpress:latest
     deploy:
       replicas: 1
-      restart_policy:
-        condition: on-failure
+    depends_on:
+      - db
+      - redis
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: wp_password
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_CACHE_HOST: redis
+      WP_REDIS_HOST: redis
+      WP_REDIS_PORT: 6379
+    volumes:
+      - wordpress_data:/var/www/html
+    ports:
+      - "8080:80"
     networks:
-      - wp-network
+      - my_network
+  prometheus:
+    image: prom/prometheus
+    deploy:
+      replicas: 1
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - my_network
 
   grafana:
     image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
+    deploy:
+      replicas: 1
     environment:
+      - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - grafana_data:/var/lib/grafana
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-    networks:
-      - wp-network
-
-  db_exporter:
-    image: prom/mysqld-exporter:latest
-    environment:
-      DATA_SOURCE_NAME: "wpuser:wppassword@tcp(db:3306)/"
     ports:
-      - "9104:9104"
+      - "3000:3000"
     networks:
-      - wp-network
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
+      - my_network
+
+  cadvisor:
+    image: google/cadvisor:latest
+    ports:
+      - "8081:8080"
+    networks:
+      - my_network
 
 networks:
-  wp-network:
-    driver: overlay
+  my_network:
 
 volumes:
-  db_data:
-  wordpress:
+  mysql_data:
+  redis_data:
+  wordpress_data:
   prometheus_data:
   grafana_data:
