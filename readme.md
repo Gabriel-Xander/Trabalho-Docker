@@ -87,7 +87,7 @@
 
 ## 5. Acessar o WordPress
 
-1. No navegador, acesse `http://<ip-da-máquina-líder>:80`. Você deve ver a página de instalação e configuração do WordPress.
+1. No navegador, acesse `http://<ip-da-máquina-líder>:80` ou `localhost:8080`. Você deve ver a página de instalação e configuração do WordPress.
 2. Acesse o painel de administração em `http://<ip-da-máquina-líder>:80/admin`.
     - Vá em "Ferramentas" e "Informações", e procure por "Banco de dados" para ver as configurações do banco de dados.
 3. Vá em "Plugins" -> "Adicionar plugin", procure e instale o plugin "Redis".
