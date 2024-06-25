@@ -26,7 +26,7 @@
     ```
 2. Crie e atualize um stack (conjunto de serviços) a partir de um arquivo Compose no swarm:
     ```bash
-    docker stack deploy -c docker-compose.yml wordpress_stack
+    docker stack deploy -c arquivo.yml wordpress_stack
     ```
 3. Verifique os nós do Docker Swarm:
     ```bash
