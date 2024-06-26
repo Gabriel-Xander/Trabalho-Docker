@@ -95,13 +95,13 @@
 
 ## 6. Acessar o Prometheus
 
-1. Acesse o seguinte endereço: `http://<ip_da_máquina_líder>:9090`
+1. Acesse o seguinte endereço: `http://<ip_da_máquina_líder>:9090` ou `localhost:9090`.
 2. Na aba "Expressions", digite "up" e clique em "Execute".
 3. Observe as instâncias que estão em execução.
 
 ## 7. Acessar o Grafana
 
-1. Acesse `http://<ip_da_máquina_líder>:3000`.
+1. Acesse `http://<ip_da_máquina_líder>:3000` ou `localhost:3000`.
 2. Faça login com as credenciais "Admin" e "Admin".
 3. Vá para "Data sources":
     1. Clique em "Add new data source".
